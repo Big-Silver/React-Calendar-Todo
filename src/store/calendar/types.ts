@@ -1,11 +1,13 @@
-export interface Calendar extends ApiResponse {
+export interface ICalendar extends ApiResponse {
   title: string;
   allDay: boolean;
   start: Date;
-  endDate: Date;
-  desc: string;
-  resourceId?: string;
-  tooltip?: string;
+  end: Date;
+  time?: string;
+  companyName: string;
+  companyStreet?: string;
+  companyCity?: string;
+  comments?: string;
 }
 
 export type ApiResponse = Record<string, any>;
@@ -20,6 +22,6 @@ export const enum CalendarActionTypes {
 
 export interface CalendarState {
   readonly loading: boolean;
-  readonly data: Calendar[];
+  readonly data: ICalendar[];
   readonly errors?: string;
 }
