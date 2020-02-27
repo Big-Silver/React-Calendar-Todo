@@ -2,7 +2,7 @@ import * as React from "react";
 import { connect } from "react-redux";
 import { Dispatch } from "redux";
 import moment from "moment";
-import { Calendar, View, DateLocalizer, momentLocalizer, Views } from "react-big-calendar";
+import { Calendar, momentLocalizer } from "react-big-calendar";
 
 import Page from "../components/layout/Page";
 import Container from "../components/layout/Container";
@@ -32,9 +32,13 @@ interface IState {
   isEvent: boolean;
   events: ICalendar[];
   selectedEventNum: number;
+  errors: {
+    title: string,
+    companyName: string,
+    start: string
+  };
 }
 
-// Combine both state + dispatch props - as well as any props we want to pass - in a union type.
 type AllProps = IPropsFromState & IPropsFromDispatch & IConnectedReduxProps;
 
 class IndexPage extends React.Component<AllProps, IState> {
@@ -62,25 +66,21 @@ class IndexPage extends React.Component<AllProps, IState> {
           comments: "no comments"
         },
       ],
-      selectedEventNum: 0
+      selectedEventNum: 0,
+      errors: {
+        title: "",
+        companyName: "",
+        start: ""
+      }
     };
 
-    this.handleSubmit = this.handleSubmit.bind(this);
-    this.handleDateChange = this.handleDateChange.bind(this);
-    this.handleTimeChange = this.handleTimeChange.bind(this);
-    this.handleTitleChange = this.handleTitleChange.bind(this);
-    this.handleCompanyNameChange = this.handleCompanyNameChange.bind(this);
-    this.handleCompanyStreetChange = this.handleCompanyStreetChange.bind(this);
-    this.handleCompanyCityChange = this.handleCompanyCityChange.bind(this);
-    this.handleCommentsChange = this.handleCommentsChange.bind(this);
-
+    this.handleChange = this.handleChange.bind(this);
+    this.validForm = this.validForm.bind(this);
     this.selectEvent = this.selectEvent.bind(this);
     this.selectSlot = this.selectSlot.bind(this);
 
     this.addEvent = this.addEvent.bind(this);
-    this.editEvent = this.editEvent.bind(this);
     this.removeEvent = this.removeEvent.bind(this);
-    this.cancelEvent = this.cancelEvent.bind(this);
   }
 
   public componentDidMount() {
@@ -91,40 +91,38 @@ class IndexPage extends React.Component<AllProps, IState> {
     }
   }
 
-  handleSubmit = () => {
-    console.log("form : ", this.state);
-  }
+  handleChange = (event: any) => {
+    event.preventDefault();
+    const { name, value } = event.target;
+    const errors = this.state.errors;
+    switch (name) {
+      case "title":
+        errors.title =
+          value.length < 1
+            ? "The title is required."
+            : "";
+        break;
+      case "companyName":
+        errors.companyName =
+          value.length < 1
+            ? "The company name is required."
+            : "";
+        break;
+      case "start":
+        errors.start =
+          value.length < 1
+            ? "The date is required."
+            : "";
+        break;
+      default:
+        break;
+    }
 
-  handleDateChange = (event: any) => {
-    this.setState({ start: event.target.value });
-  }
-
-  handleTimeChange = (event: any) => {
-    this.setState({ time: event.target.value });
-  }
-
-  handleTitleChange = (event: any) => {
-    this.setState({ title: event.target.value });
-  }
-
-  handleCompanyNameChange = (event: any) => {
-    this.setState({ companyName: event.target.value });
-  }
-
-  handleCompanyStreetChange = (event: any) => {
-    this.setState({ companyStreet: event.target.value });
-  }
-
-  handleCompanyCityChange = (event: any) => {
-    this.setState({ companyCity: event.target.value });
-  }
-
-  handleCommentsChange = (event: any) => {
-    this.setState({ comments: event.target.value });
+    this.setState({ errors, [name]: value });
   }
 
   selectEvent = (eventInfo: any) => {
-    const e  = this.state.events;
+    const e = this.state.events;
     // tslint:disable-next-line:no-increment-decrement
     for (let i = 0; i < e.length; i++) {
       if (moment(e[i].start).format("YYYY-MM-DD") === moment(eventInfo.start).format("YYYY-MM-DD")) {
@@ -164,124 +162,207 @@ class IndexPage extends React.Component<AllProps, IState> {
     });
   }
 
-  addEvent = () => {
+  addEvent = (event: any, type: string) => {
+    event.preventDefault();
+    if (!this.validForm()) {
+      return false;
+    }
     // tslint:disable-next-line:one-variable-per-declaration
-    const e  = this.state.events,
-      year   = parseInt(moment(this.state.start).format("YYYY"), 10),
-      month  = parseInt(moment(this.state.start).format("MM"), 10) - 1,
-      day    = parseInt(moment(this.state.start).format("DD"), 10),
-      hour   = parseInt(moment(`${this.state.start} ${this.state.time}`).format("HH"), 10),
+    const e = this.state.events,
+      year = parseInt(moment(this.state.start).format("YYYY"), 10),
+      month = parseInt(moment(this.state.start).format("MM"), 10) - 1,
+      day = parseInt(moment(this.state.start).format("DD"), 10),
+      hour = parseInt(moment(`${this.state.start} ${this.state.time}`).format("HH"), 10),
       minute = parseInt(moment(`${this.state.start} ${this.state.time}`).format("mm"), 10),
       second = parseInt(moment(`${this.state.start} ${this.state.time}`).format("mm"), 10);
-    e.push({
-      title: this.state.title,
-      allDay: false,
-      start: new Date(year, month, day, hour, minute, second),
-      end: new Date(year, month, day, hour, minute, second),
-      companyName: this.state.companyName,
-      companyCity: this.state.companyCity,
-      companyStreet: this.state.companyStreet,
-      comments: this.state.comments
-    });
-    this.setState({ events: e, isEvent: true });
+    if (type === "add") {
+      const eventInfo = {
+        title: this.state.title,
+        allDay: false,
+        start: new Date(year, month, day, hour, minute, second),
+        end: new Date(year, month, day, hour, minute, second),
+        companyName: this.state.companyName,
+        companyCity: this.state.companyCity,
+        companyStreet: this.state.companyStreet,
+        comments: this.state.comments
+      };
+      e.push(eventInfo);
+      this.setState({
+        events: e,
+        isEvent: true
+      });
+      this.selectEvent(eventInfo);
+      return;
+    }
+    if (type === "edit") {
+      const num = this.state.selectedEventNum;
+      e[num].title = this.state.title;
+      e[num].start = new Date(year, month, day, hour, minute, second);
+      e[num].end = new Date(year, month, day, hour, minute, second);
+      e[num].companyName = this.state.companyName;
+      e[num].companyStreet = this.state.companyStreet;
+      e[num].companyCity = this.state.companyCity;
+      e[num].comments = this.state.comments;
+      this.setState({ events: e });
+      return;
+    }
   }
 
-  editEvent = () => {
+  removeEvent = (event: any, type: string) => {
+    event.preventDefault();
+    const e = this.state.events;
+    e.splice(this.state.selectedEventNum, 1);
+    if (type === "remove") {
+      this.setState({
+        time: "",
+        title: "",
+        companyName: "",
+        companyCity: "",
+        companyStreet: "",
+        comments: "",
+        events: e,
+        isEvent: false
+      });
+      return;
+    }
+    if (type === "cancel") {
+      this.setState({
+        events: e,
+        isEvent: false
+      });
+      return;
+    }
+  }
+
+  validForm = () => {
     // tslint:disable-next-line:one-variable-per-declaration
-    const e  = this.state.events,
-      year   = parseInt(moment(this.state.start).format("YYYY"), 10),
-      month  = parseInt(moment(this.state.start).format("MM"), 10) - 1,
-      day    = parseInt(moment(this.state.start).format("DD"), 10),
-      hour   = parseInt(moment(`${this.state.start} ${this.state.time}`).format("HH"), 10),
-      minute = parseInt(moment(`${this.state.start} ${this.state.time}`).format("mm"), 10),
-      second = parseInt(moment(`${this.state.start} ${this.state.time}`).format("mm"), 10);
-    e[this.state.selectedEventNum].title = this.state.title;
-    e[this.state.selectedEventNum].start = new Date(year, month, day, hour, minute, second);
-    e[this.state.selectedEventNum].end = new Date(year, month, day, hour, minute, second);
-    e[this.state.selectedEventNum].companyName = this.state.companyName;
-    e[this.state.selectedEventNum].companyStreet = this.state.companyStreet;
-    e[this.state.selectedEventNum].companyCity = this.state.companyCity;
-    e[this.state.selectedEventNum].comments = this.state.comments;
-    this.setState({ events: e });
-  }
-
-  removeEvent = () => {
-    const e  = this.state.events;
-    // console.log(this.state.events.splice(this.state.selectedEventNum, 1))
-    e.splice(this.state.selectedEventNum, 1);
+    const errors = this.state.errors;
+    let isError = false;
+    if (this.state.start === "") {
+      errors.start = "The date is required.";
+      isError = true;
+    }
+    if (this.state.title === "") {
+      errors.title = "The title is required.";
+      isError = true;
+    }
+    if (this.state.companyName === "") {
+      errors.companyName = "The company name is required.";
+      isError = true;
+    }
+    if (isError) {
+      this.setState({ errors });
+      return false;
+    }
     this.setState({
-      time: "",
-      title: "",
-      companyName: "",
-      companyCity: "",
-      companyStreet: "",
-      comments: "",
-      events: e,
-      isEvent: false
+      errors: {
+        title: "",
+        start: "",
+        companyName: ""
+      }
     });
-  }
-
-  cancelEvent = () => {
-    const e  = this.state.events;
-    // console.log(this.state.events.splice(this.state.selectedEventNum, 1))
-    e.splice(this.state.selectedEventNum, 1);
-    this.setState({
-      events: e,
-      isEvent: false
-    });
+    return true;
   }
 
   public render() {
     const { data } = this.props;
+    const { errors } = this.state;
 
     return (
       <Page>
         <Container>
           <div className="container">
-            <div className="row">
+            <div className="row mt-5">
               <div className="col-xs-6 col-md-6 col-sm-12">
-                <form>
+                <Form>
                   <FormLabel>
                     Date:
-                    <input type="date" value={this.state.start} onChange={this.handleDateChange} />
+                    <input
+                      type="date"
+                      name="start"
+                      className={`form-control ${errors.start ? "is-invalid" : ""}`}
+                      value={this.state.start}
+                      onChange={this.handleChange}
+                    />
                   </FormLabel>
+                  {errors.start.length > 0 && <span className="error">{errors.start}</span>}
                   <FormLabel>
                     Time:
-                    <input type="time" value={this.state.time} onChange={this.handleTimeChange} />
+                    <input
+                      type="time"
+                      name="time"
+                      className="form-control"
+                      value={this.state.time}
+                      onChange={this.handleChange}
+                    />
                   </FormLabel>
                   <FormLabel>
                     Job Title:
-                    <input type="text" value={this.state.title} onChange={this.handleTitleChange} />
+                    <input
+                      type="text"
+                      name="title"
+                      className={`form-control ${errors.title ? "is-invalid" : ""}`}
+                      value={this.state.title}
+                      onChange={this.handleChange}
+                    />
                   </FormLabel>
+                  {errors.title.length > 0 && <span className="error">{errors.title}</span>}
                   <FormLabel>
                     Company Name:
-                    <input type="text" value={this.state.companyName} onChange={this.handleCompanyNameChange} />
+                    <input
+                      type="text"
+                      name="companyName"
+                      className={`form-control ${errors.companyName ? "is-invalid" : ""}`}
+                      value={this.state.companyName}
+                      onChange={this.handleChange}
+                    />
                   </FormLabel>
+                  {errors.companyName.length > 0 && <span className="error">{errors.companyName}</span>}
                   <FormLabel>
                     Company Street:
-                    <input type="text" value={this.state.companyStreet} onChange={this.handleCompanyStreetChange} />
+                    <input
+                      type="text"
+                      name="companyStreet"
+                      className="form-control"
+                      value={this.state.companyStreet}
+                      onChange={this.handleChange}
+                    />
                   </FormLabel>
                   <FormLabel>
                     Company City:
-                    <input type="text" value={this.state.companyCity} onChange={this.handleCompanyCityChange} />
+                    <input
+                      type="text"
+                      name="companyCity"
+                      className="form-control"
+                      value={this.state.companyCity}
+                      onChange={this.handleChange}
+                    />
                   </FormLabel>
                   <FormLabel>
                     Comments:
-                    <textarea rows={5} value={this.state.comments} onChange={this.handleCommentsChange} />
+                    <textarea
+                      name="comments"
+                      className="form-control"
+                      rows={5}
+                      value={this.state.comments}
+                      onChange={this.handleChange}
+                    />
                   </FormLabel>
                   {this.state.isEvent ?
-                    (<div>
-                      <button className="btn btn-primary" onClick={this.editEvent}>Edit</button>
-                      <button className="btn btn-danger" onClick={this.removeEvent}>Remove</button>
-                      <button className="btn btn-warning" onClick={this.cancelEvent}>Cancel</button>
+                    (<div className="text-right">
+                      <button className="btn btn-primary mx-1" onClick={e => this.addEvent(e, "edit")}>Edit</button>
+                      <button className="btn btn-danger mx-1" onClick={e => this.removeEvent(e, "remove")}>Remove</button>
+                      <button className="btn btn-warning mx-1" onClick={e => this.removeEvent(e, "cancel")}>Cancel</button>
                     </div>)
                     :
-                    (<button className="btn btn-success" onClick={this.addEvent}>Add</button>)}
-                </form>
+                    (<div className="text-right">
+                      <button className="btn btn-success mx-1" onClick={e => this.addEvent(e, "add")}>Add</button>
+                    </div>)}
+                </Form>
               </div>
               <div className="col-xs-6 col-md-6 col-sm-12">
                 <Calendar
-                  events={this.state.events}
+                  events={data}
                   defaultView={"month"}
                   views={["day", "week", "month"]}
                   step={60}
@@ -294,7 +375,6 @@ class IndexPage extends React.Component<AllProps, IState> {
                 />
               </div>
             </div>
-
           </div>
         </Container>
       </Page>
@@ -302,17 +382,12 @@ class IndexPage extends React.Component<AllProps, IState> {
   }
 }
 
-// It"s usually good practice to only include one context at a time in a connected component.
-// Although if necessary, you can always include multiple contexts. Just make sure to
-// separate them from each other to prevent prop conflicts.
 const mapStateToProps = ({ calendar }: IApplicationState) => ({
   loading: calendar.loading,
   errors: calendar.errors,
   data: calendar.data
 });
 
-// mapDispatchToProps is especially useful for constraining our actions to the connected component.
-// You can access these via `this.props`.
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   fetchRequest: () => dispatch(fetchRequest())
 });
@@ -323,6 +398,20 @@ export default connect(
 )(IndexPage);
 
 const localizer = momentLocalizer(moment);
+
+const Form = styled("form")`
+  .error {
+    color: #dc3545
+  }
+
+  .is-invalid {
+    border-color: #dc3545;
+  }
+
+  button {
+    width: 100px;
+  }
+`;
 
 const FormLabel = styled("label")`
   width: 100%;

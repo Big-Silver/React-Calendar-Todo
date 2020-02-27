@@ -36,4 +36,8 @@ export default css`
     font-size: 85%;
     border-collapse: collapse;
   }
+
+  .rbc-toolbar .rbc-toolbar-label {
+    padding: 0 0px;
+  }
 `;

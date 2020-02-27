@@ -3,7 +3,18 @@ import { CalendarState, CalendarActionTypes } from "./types";
 
 // Type-safe initialState!
 const initialState: CalendarState = {
-  data: [],
+  data: [
+    {
+      title: "All Day Event very long title",
+      allDay: false,
+      start: new Date(2020, 1, 26, 12, 30, 0),
+      end: new Date(2020, 1, 26, 12, 30, 0),
+      companyName: "Amazon",
+      companyCity: "seattle",
+      companyStreet: "world street",
+      comments: "no comments"
+    },
+  ],
   errors: undefined,
   loading: false
 };
