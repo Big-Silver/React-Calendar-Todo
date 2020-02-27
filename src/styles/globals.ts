@@ -40,4 +40,21 @@ export default css`
   .rbc-toolbar .rbc-toolbar-label {
     padding: 0 0px;
   }
+
+  .rbc-row {
+    position: relative;
+  }
+
+  .rbc-row-segment {
+    height: 100vh;
+  }
+
+  .rbc-event {
+    height: 100%;
+  }
+
+  .rbc-day-slot .rbc-event {
+    top: 0% !important;
+    height: 100% !important;
+  }
 `;

@@ -16,8 +16,7 @@ export const enum CalendarActionTypes {
   FETCH_REQUEST = "@@calendar/FETCH_REQUEST",
   FETCH_SUCCESS = "@@calendar/FETCH_SUCCESS",
   FETCH_ERROR = "@@calendar/FETCH_ERROR",
-  SELECT_HERO = "@@calendar/SELECT_HERO",
-  SELECTED = "@@calendar/SELECTED"
+  UPDATE_EVENT = "@@calendar/UPDATE_EVENT"
 }
 
 export interface CalendarState {

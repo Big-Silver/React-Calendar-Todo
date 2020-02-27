@@ -5,7 +5,7 @@ import { CalendarState, CalendarActionTypes } from "./types";
 const initialState: CalendarState = {
   data: [
     {
-      title: "All Day Event very long title",
+      title: "Interview",
       allDay: false,
       start: new Date(2020, 1, 26, 12, 30, 0),
       end: new Date(2020, 1, 26, 12, 30, 0),
@@ -31,6 +31,9 @@ const reducer: Reducer<CalendarState> = (state = initialState, action) => {
     }
     case CalendarActionTypes.FETCH_ERROR: {
       return { ...state, loading: false, errors: action.payload };
+    }
+    case CalendarActionTypes.UPDATE_EVENT: {
+      return { ...state, loading: false, data: action.payload };
     }
     default: {
       return state;

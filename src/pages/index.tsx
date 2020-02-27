@@ -8,7 +8,7 @@ import Page from "../components/layout/Page";
 import Container from "../components/layout/Container";
 import styled from "../utils/styled";
 import { IApplicationState, IConnectedReduxProps } from "../store";
-import { fetchRequest } from "../store/calendar/actions";
+import { fetchRequest, updateEvent } from "../store/calendar/actions";
 import { ICalendar } from "../store/calendar/types";
 
 interface IPropsFromState {
@@ -19,6 +19,7 @@ interface IPropsFromState {
 
 interface IPropsFromDispatch {
   fetchRequest: typeof fetchRequest;
+  updateEvent: typeof updateEvent;
 }
 
 interface IState {
@@ -30,7 +31,6 @@ interface IState {
   companyCity: string;
   comments: string;
   isEvent: boolean;
-  events: ICalendar[];
   selectedEventNum: number;
   errors: {
     title: string,
@@ -54,18 +54,6 @@ class IndexPage extends React.Component<AllProps, IState> {
       companyCity: "",
       comments: "",
       isEvent: false,
-      events: [
-        {
-          title: "All Day Event very long title",
-          allDay: false,
-          start: new Date(2020, 1, 26, 12, 30, 0),
-          end: new Date(2020, 1, 26, 12, 30, 0),
-          companyName: "Amazon",
-          companyCity: "seattle",
-          companyStreet: "world street",
-          comments: "no comments"
-        },
-      ],
       selectedEventNum: 0,
       errors: {
         title: "",
@@ -122,7 +110,7 @@ class IndexPage extends React.Component<AllProps, IState> {
   }
 
   selectEvent = (eventInfo: any) => {
-    const e = this.state.events;
+    const e = this.props.data;
     // tslint:disable-next-line:no-increment-decrement
     for (let i = 0; i < e.length; i++) {
       if (moment(e[i].start).format("YYYY-MM-DD") === moment(eventInfo.start).format("YYYY-MM-DD")) {
@@ -143,10 +131,10 @@ class IndexPage extends React.Component<AllProps, IState> {
 
   selectSlot = (slotInfo: any) => {
     // tslint:disable-next-line:no-increment-decrement
-    for (let i = 0; i < this.state.events.length; i++) {
-      if (moment(this.state.events[i].start).format("YYYY-MM-DD") === moment(slotInfo.start).format("YYYY-MM-DD")) {
+    for (let i = 0; i < this.props.data.length; i++) {
+      if (moment(this.props.data[i].start).format("YYYY-MM-DD") === moment(slotInfo.start).format("YYYY-MM-DD")) {
         this.setState({ isEvent: true });
-        this.selectEvent(this.state.events[i]);
+        this.selectEvent(this.props.data[i]);
         return;
       }
     }
@@ -168,7 +156,7 @@ class IndexPage extends React.Component<AllProps, IState> {
       return false;
     }
     // tslint:disable-next-line:one-variable-per-declaration
-    const e = this.state.events,
+    const e = this.props.data,
       year = parseInt(moment(this.state.start).format("YYYY"), 10),
       month = parseInt(moment(this.state.start).format("MM"), 10) - 1,
       day = parseInt(moment(this.state.start).format("DD"), 10),
@@ -187,8 +175,8 @@ class IndexPage extends React.Component<AllProps, IState> {
         comments: this.state.comments
       };
       e.push(eventInfo);
+      this.props.updateEvent(e);
       this.setState({
-        events: e,
         isEvent: true
       });
       this.selectEvent(eventInfo);
@@ -203,14 +191,14 @@ class IndexPage extends React.Component<AllProps, IState> {
       e[num].companyStreet = this.state.companyStreet;
       e[num].companyCity = this.state.companyCity;
       e[num].comments = this.state.comments;
-      this.setState({ events: e });
+      this.props.updateEvent(e);
       return;
     }
   }
 
   removeEvent = (event: any, type: string) => {
     event.preventDefault();
-    const e = this.state.events;
+    const e = this.props.data;
     e.splice(this.state.selectedEventNum, 1);
     if (type === "remove") {
       this.setState({
@@ -220,16 +208,16 @@ class IndexPage extends React.Component<AllProps, IState> {
         companyCity: "",
         companyStreet: "",
         comments: "",
-        events: e,
         isEvent: false
       });
+      this.props.updateEvent(e);
       return;
     }
     if (type === "cancel") {
       this.setState({
-        events: e,
         isEvent: false
       });
+      this.props.updateEvent(e);
       return;
     }
   }
@@ -389,7 +377,8 @@ const mapStateToProps = ({ calendar }: IApplicationState) => ({
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  fetchRequest: () => dispatch(fetchRequest())
+  fetchRequest: () => dispatch(fetchRequest()),
+  updateEvent: (events:any) => dispatch(updateEvent(events))
 });
 
 export default connect(

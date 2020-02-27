@@ -10,3 +10,4 @@ export const fetchRequest = () => action(CalendarActionTypes.FETCH_REQUEST);
 // type them properly as well.
 export const fetchSuccess = (data: ICalendar[]) => action(CalendarActionTypes.FETCH_SUCCESS, data);
 export const fetchError = (message: string) => action(CalendarActionTypes.FETCH_ERROR, message);
+export const updateEvent = (data: ICalendar[]) => action(CalendarActionTypes.UPDATE_EVENT, data);
