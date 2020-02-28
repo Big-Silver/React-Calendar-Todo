@@ -8,6 +8,8 @@ React + Redux app with TypeScript.
 
 This project was bootstrapped with <http://github.com/sw-yx/create-react-app-parcel>.
 
+<img width="900" height="500" src="src/styles/images/readme.png" border="0" />
+
 ## Getting started
 
 A Node.js 8.0.0+ setup with [yarn](https://yarnpkg.com/) is recommended.
