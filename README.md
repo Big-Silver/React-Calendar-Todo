@@ -8,7 +8,13 @@ React + Redux app with TypeScript.
 
 This project was bootstrapped with <http://github.com/sw-yx/create-react-app-parcel>.
 
+> Light Theme
+
 <img width="900" height="500" src="src/styles/images/readme.png" border="0" />
+
+> Dark Theme
+
+<img width="900" height="470" src="src/styles/images/readme1.png" border="0" />
 
 ## Getting started
 
