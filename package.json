@@ -34,7 +34,7 @@
     "polished": "^2.3.0",
     "react": "^16.6.0",
     "react-big-calendar": "^0.24.0",
-    "react-dev-utils": "^5.0.0",
+    "react-dev-utils": "^11.0.4",
     "react-dom": "^16.6.0",
     "react-emotion": "^9.2.12",
     "react-redux": "^5.1.0",
